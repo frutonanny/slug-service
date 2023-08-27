@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Slug Service API
+  version: v1
+
+servers:
+  - url: http://localhost:8081/v1
+    description: Development server
+
+paths:
+  /createSlug:
+    post:
+      description: "Метод создания сегмента."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSlugRequest"
+      responses:
+        '200':
+          description: "Сегмент создан."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateSlugResponse"
+
+  /deleteSlug:
+    post:
+      description: "Метод удаления сегмента."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteSlugRequest"
+      responses:
+        '200':
+          description: "Сегмент удален."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteSlugResponse"
+
+  /modifyUserSlugs:
+    post:
+      description: "Метод добавления/удаления пользователя в/из сегментов."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModifyUserSlugsRequest"
+      responses:
+        '200':
+          description: "Пользователь добавлен/удален в/из сегментов."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModifyUserSlugsResponse"
+
+  /getUserSlugs:
+    post:
+      description: "Метод получения сегментов пользователя."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetUserSlugsRequest"
+      responses:
+        '200':
+          description: "Сегменты пользователя."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserSlugsResponse"
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          minLength: 1
+        code:
+          type: string
+          minLength: 1
+
+    Slug:
+      type: string
+      description: "Название сегмента."
+      example: "AVITO_VOICE_MESSAGES"
+      minLength: 4
+      maxLength: 255
+
+    UserID:
+      type: string
+      description: "Идентификатор пользователя."
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    CreateSlugRequest:
+      required:
+        - name
+      properties:
+        name:
+          $ref: "#/components/schemas/Slug"
+        options:
+          type: object
+          description: "Опции сегмента."
+          properties:
+            percent:
+              type: integer
+              minimum: 1
+              maximum: 100
+
+    CreateSlugResponse:
+      properties:
+        data:
+          type: object # Пустой ответ, ничего возвращать не нужно.
+        error:
+          $ref: "#/components/schemas/Error"
+
+    DeleteSlugRequest:
+      required:
+        - name
+      properties:
+        name:
+          $ref: "#/components/schemas/Slug"
+
+    DeleteSlugResponse:
+      properties:
+        data:
+          type: object # Пустой ответ, ничего возвращать не нужно.
+        error:
+          $ref: "#/components/schemas/Error"
+
+    ModifyUserSlugsRequest:
+      required:
+        - userID
+      properties:
+        userID:
+          $ref: "#/components/schemas/UserID"
+        add:
+          type: array
+          items:
+            $ref: "#/components/schemas/Slug"
+        delete:
+          type: array
+          items:
+            $ref: "#/components/schemas/Slug"
+
+    ModifyUserSlugsResponse:
+      properties:
+        data:
+          type: object # Пустой ответ, ничего возвращать не нужно.
+        error:
+          $ref: "#/components/schemas/Error"
+
+    GetUserSlugsRequest:
+      required:
+        - userID
+      properties:
+        userID:
+          $ref: "#/components/schemas/UserID"
+
+    GetUserSlugsResponse:
+      properties:
+        data:
+          $ref: "#/components/schemas/GetUserSlugsData"
+        error:
+          $ref: "#/components/schemas/Error"
+
+    GetUserSlugsData:
+      type: object
+      required:
+        - slugs
+      properties:
+        slugs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Slug"

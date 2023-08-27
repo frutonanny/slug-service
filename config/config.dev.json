@@ -1,0 +1,9 @@
+{
+  "db": {
+    "dsn": "host=postgres port=5432 user=katya password=katya dbname=slugdb sslmode=disable"
+  },
+  "service": {
+    "port": "8081",
+    "host": "0.0.0.0"
+  }
+}
