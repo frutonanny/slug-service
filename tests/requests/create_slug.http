@@ -1,0 +1,17 @@
+POST localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_VOICE_MESSAGES"
+}
+
+### С опциями.
+POST localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_VOICE_MESSAGES_40%",
+  "options": {
+    "percent": 40
+  }
+}

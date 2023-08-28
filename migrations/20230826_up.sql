@@ -38,7 +38,18 @@ create table if not exists users_slugs_history
     created_at timestamptz not null default now()
 );
 
+-- Таблица хранения задач для дальнейшего выполнение.
+create table if not exists outbox
+(
+    id             bigserial primary key,
+    name           text        not null,
+    data           text,
+    reserved_until timestamp   not null default now(),
+    created_at     timestamptz not null default now()
+);
+
 -- +goose Down
+drop table outbox;
 drop table users_slugs_history;
 drop table users_slugs;
 drop table users;

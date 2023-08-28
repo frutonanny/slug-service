@@ -11,11 +11,21 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 )
+
+// AddSlugsData defines model for AddSlugsData.
+type AddSlugsData struct {
+	// Название сегмента.
+	Name Slug `json:"name"`
+
+	// Время автоматического удаления пользователя из сегмента в формате RFC3339.
+	Ttl *time.Time `json:"ttl,omitempty"`
+}
 
 // CreateSlugRequest defines model for CreateSlugRequest.
 type CreateSlugRequest struct {
@@ -71,8 +81,8 @@ type GetUserSlugsResponse struct {
 
 // ModifyUserSlugsRequest defines model for ModifyUserSlugsRequest.
 type ModifyUserSlugsRequest struct {
-	Add    *[]Slug `json:"add,omitempty"`
-	Delete *[]Slug `json:"delete,omitempty"`
+	Add    *[]AddSlugsData `json:"add,omitempty"`
+	Delete *[]Slug         `json:"delete,omitempty"`
 
 	// Идентификатор пользователя.
 	UserID UserID `json:"userID"`
@@ -209,22 +219,24 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7yWz27bxhPHX0WY3+9Im5QjuS5vbiwEAhokqOpcAiPYkGOJgchldpdGjIBA6xTtoQFy",
-	"7aF/0DdQXQsW6kZ5heEbFbukZYmkLLWJfJK02p1/n9n57mvweBjzCCMlwX0N0htgyMzX+wKZwt4w6X+F",
-	"LxOUSi/GgscoVIBmS8RC1J//F3gMLvzPvjFmF5ZsbQBSC3isAh6ZYz5KTwTmN7hAv9KH7Hua0KSRfUtj",
-	"+pP+pjG9z85otA1WyWOMwsPIhBKyV0GYhOA2HceCMIiKXxao0xjBhSBS2EcBaTpb4s9foKfMisCXSSDQ",
-	"B/dpnsdRai3kLGMeSawm7TPF9GfJpAUoBBerytExm1IdwQEO8ZMVeFlG8042nlHnev+ifY/7xmsYRF9i",
-	"1FeDeUpSiSAyHRKilKy/emcp1etjVu7nyKrm8QDVoUShqyAPimQXQ5T6L/0lUBjKdXu6cMSEYKeVuHKT",
-	"q8JZij6RKLoHqyI5zHeVfReHjyrOVrXAbb4qVfwPHfKQ+8Hx6ersme9/JA0LfNP6H23mU4GopL7x62gy",
-	"qs7bX2hEl3ROI3pPExrXTl18xcJ4qN3vP+l+/ejZk0fd+51nDzu93v6DTg8sPX2vb+hOu23N39hWzd0+",
-	"nBWxFMxPdFH4nWTf0YT+olF2RtPsmwZ9oCldZW/pkqY62uyMxnSVvVsMr912cK/lOFu48/nzrVbTb22x",
-	"z5q7W63W7m673Wo5juOABcdchEyBC0kS+FAdKakFQXTMTdkDZSzr6jV6KE4CDxv7j7tgwQkKmcd90sw1",
-	"DSMWB+DCvW1n+55WK6YGBqLtzaTEEOZ5l5ey/5nGOlu60BCmdEkXOZXsXS0V3SVMn+364MJjLtWNYEHe",
-	"eCjVF9w/zcdupAqtZHE8DDxz1H4hte9rqV/VTtVXQLrY40okaBbydjbJ7zjORgIoboyJoFTJ3+ertVDN",
-	"bb0/tcD2Z1K4HpE35vyVNvkviNwI7oaIVJ8Nd0yk5kmxBpG5as6I9OcUZS0mxUx4k/2wjMqUzm+dHFVg",
-	"87K2IWR1gn/H0GqfASuxZT/eUswCYrioa+txvKAp/UEjOr+5X3blwi1z3aBzmyZ0WcO+HnFJejdEecnb",
-	"5o5BL3tm1LH+rba+byt4FtDcWv00bwqJQmsluE/LTXCAJzjkcYiRauS7wIJEDMGFgVKxa9tD7rHhgEvl",
-	"7jl7TVsr7VH6TwAAAP//IPcWbqgOAAA=",
+	"H4sIAAAAAAAC/7xX227bRhD9FWHaR8qkbo7DN9d2AwMNEkRxHhoYAUOOJQbiJbsrI0YgwHGC9qEBCvSp",
+	"D72gf6AqFizELvMLwz8qdkndSOrSJjJgwJI4uzNzzsyc4WuwAy8MfPQFB/M1cLuNnqU+7jpOs9Nt8X1L",
+	"WPJ7yIIQmXBRPfUtD+X/rxmegAlf6dN79PQSXR6HngZCdKSpg9xmbijcwAcT6Jf4nIZ0E/9coj4N4guK",
+	"6Ib68QWN4h9pGL+hjxTRB4pK8Vu6pD5d05D+oZG0/0QRXcfv6YoiGqgzQ7qWD0Z0VYrf0JA+0I00jy+o",
+	"X6JBKX5HUXye3j8sPfp2r1ar3d0CDfCV5YUdBBOqRrVWNnbK1TuPK4ZpyL/vQYOTgHmWABMcS2BZuB6C",
+	"BuIslEe4YK7fgl5PA4Yvuy5DB8ynCTbHE6vg+Qu0hQRij6ElUMLyCF92kYvPwzVQWPICbP+gT/EPNKJR",
+	"Dg2Z87zHEJmNvgrFs165XtcDs2IYGniun36bpOL6AlvIVMaZ7AoxyOTMw8DnmE/aSUssBxgyFrBVcBwo",
+	"o56MYB87+MUAXpTRrJONZ3Qwtp+/3w4c5dVz/e/Qb4n2LEvjstTAQ86t1mrLTKrjY1rip6iU76E44siW",
+	"TAguH8kPrkCPrz0rEkcWY9ZZLq7kylXhLKS+y5Ed7q+K5CixyvpODx/nnK0qgWW+cij+jwq5Hzjuydnq",
+	"7C3HWZuNudmfY0UDR7XAZ5KrfTFCchBsvC1VRvm5+zv16UpKklQqGhZO36ni7D45fPzg2ZMHh3sHz+4f",
+	"NJu79w6aoMkpPO7UaqOhzXZuvaDHjyYgZoL5lS5Tv6P4HY3oo1K/KD5fKKDz4TUaBu7UDaOM1bvPy/WK",
+	"Uy9bdyrb5Xp9e7vRqNcNwzBmBbLbdZ0Cbexp4PongYLdFepmiV6piezUtbG0+/AQNDhFxpO4TyuJtqFv",
+	"hS6YUNsytmpStSzRViTq9kRSFMNBUu2Z7H+jodopLiUJEV2pHSLZH4pYkVViybOHDpjwMOBiKlyQFB5y",
+	"8U3gnCXj1xepZlph2HFtdVR/waXv8Ra1qpzy20BvvsYF66L6ISlnlXzVMDYSQNoxKoIMkn/NojWH5pa0",
+	"72mgOxNJXI+R7Ea3HiNT4d0QI/n14ZYZKVgt1mBkBs0JI60ZZVmLk3QmvJXLdzErEQ2WTo48YbPytiHK",
+	"ioT/lkkrXAdW0hb/tATMlERvXtfW4/GSIvpbvlJN+0v/D69QA73oLSqiQTHFGendEMsLdpxbJnrRmlHE",
+	"9Z+F+L7P0TNHzVL0e0lRcGRSK8F8mi2CfTzFThB66ItSYgUadFkHTGgLEZq63glsq9MOuDB3jJ2KLpX2",
+	"uPdvAAAA//+YotsCAxAAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

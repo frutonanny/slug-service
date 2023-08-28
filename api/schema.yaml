@@ -149,7 +149,7 @@ components:
         add:
           type: array
           items:
-            $ref: "#/components/schemas/Slug"
+            $ref: "#/components/schemas/AddSlugsData"
         delete:
           type: array
           items:
@@ -175,6 +175,19 @@ components:
           $ref: "#/components/schemas/GetUserSlugsData"
         error:
           $ref: "#/components/schemas/Error"
+
+    AddSlugsData:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          $ref: "#/components/schemas/Slug"
+        ttl:
+          type: string
+          format: date-time
+          description: "Время автоматического удаления пользователя из сегмента в формате RFC3339."
+          example: "2023-08-27T10:00:00Z"
 
     GetUserSlugsData:
       type: object
