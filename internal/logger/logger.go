@@ -1,12 +1,19 @@
 package logger
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 )
 
-func New() *zap.Logger {
-	logger, _ := zap.NewDevelopment()
-	defer logger.Sync()
+func Must() *zap.Logger {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(fmt.Errorf("zap new development: %v", err))
+	}
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	return logger
 }

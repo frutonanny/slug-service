@@ -1,65 +1,115 @@
-package delete_slug
+//go:generate mockgen -source=service.go -destination=mocks/service.gen.go
+
+package get_user_slug
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	usersrepo "github.com/frutonanny/slug-service/internal/repositories/users"
 	"github.com/frutonanny/slug-service/internal/services"
 )
 
-type userSlugsRepository interface {
-	GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, error)
-	DeleteUserSlugByTtl(ctx context.Context, userID uuid.UUID) ([]int64, error)
+type Slug struct {
+	Name      string
+	Ttl       time.Time
+	DeletedAt time.Time
 }
 
-type operationRepository interface {
-	AddOperation(ctx context.Context, userID uuid.UUID, slugID int64, event string) error
+type usersRepo interface {
+	GetUserSlugs(ctx context.Context, userID uuid.UUID) ([]usersrepo.Slug, error)
+	DeleteUserSlug(ctx context.Context, user uuid.UUID, slugID int64) error
+}
+
+type eventsRepo interface {
+	AddEvents(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error)
+}
+
+type transactor interface {
+	RunInTx(ctx context.Context, f func(context.Context) error) error
 }
 
 type Service struct {
 	log *zap.Logger
 
-	userSlugRepository  userSlugsRepository
-	operationRepository operationRepository
+	usersRepo  usersRepo
+	eventsRepo eventsRepo
+	transactor transactor
 }
 
 func New(
 	log *zap.Logger,
-	userSlugRepository userSlugsRepository,
-	operationRepository operationRepository,
+	usersRepo usersRepo,
+	eventsRepo eventsRepo,
+	transactor transactor,
 ) *Service {
 	return &Service{
-		log:                 log,
-		userSlugRepository:  userSlugRepository,
-		operationRepository: operationRepository,
+		log:        log,
+		usersRepo:  usersRepo,
+		eventsRepo: eventsRepo,
+		transactor: transactor,
 	}
 }
 
 // GetUserSlug отдает список slug пользователя.
-// 1. Запускаем процесс по удалению отработанных slugs, по-установленному ttl
-// 2. Делаем запрос на получение всех slugs пользователя.
-// 3. Записываем в историю операций об удалении slug, у которых сработал ttl.
 func (s *Service) GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, error) {
-	slugIDs, err := s.userSlugRepository.DeleteUserSlugByTtl(ctx, userID)
+	// Возвращает все сегменты пользователя с ttl и deleted_at.
+	slugs, err := s.usersRepo.GetUserSlugs(ctx, userID)
 	if err != nil {
-		s.log.Error("delete slug", zap.Error(err))
-		return nil, fmt.Errorf("delete slug: %v", err)
+		s.log.Error("get user slugs", zap.Error(err))
+		return nil, fmt.Errorf("get user slugs: %v", err)
 	}
 
-	result, err := s.userSlugRepository.GetUserSlug(ctx, userID)
-	if err != nil {
-		s.log.Error("get user slug", zap.Error(err))
-		return nil, fmt.Errorf("delete slug: %v", err)
+	if len(slugs) == 0 {
+		return []string{}, nil
 	}
 
-	for _, slugID := range slugIDs {
-		if err := s.operationRepository.AddOperation(ctx, userID, slugID, services.DeleteSlug); err != nil {
-			s.log.Error("add operation", zap.Error(err))
-			return nil, fmt.Errorf("add operation: %v", err)
+	var (
+		slugsForDelete []int64
+		result         []string
+	)
+
+	for _, slug := range slugs {
+		// Сегмент был удален, добавляем в список на удаление, в результат не попадает.
+		// Или ttl уже прошел, то же самое.
+		if !slug.DeletedAt.IsZero() || !slug.Ttl.IsZero() && slug.Ttl.Before(time.Now()) {
+			slugsForDelete = append(slugsForDelete, slug.ID)
+			continue
 		}
+
+		result = append(result, slug.Name)
+	}
+
+	// Неблокирующее удаление удаленных и истекших slugs у пользователя.
+	if len(slugsForDelete) > 0 {
+		go func() {
+			if err := s.transactor.RunInTx(ctx, func(ctx context.Context) error {
+				for _, slugID := range slugsForDelete {
+					if err := s.usersRepo.DeleteUserSlug(ctx, userID, slugID); err != nil {
+						s.log.Error("delete users_slugs", zap.Error(err))
+						return fmt.Errorf("delete users_slugs: %v", err)
+					}
+
+					if _, err := s.eventsRepo.AddEvents(
+						ctx,
+						userID,
+						slugID,
+						services.DeleteSlug,
+					); err != nil {
+						s.log.Error("add event", zap.Error(err))
+						return fmt.Errorf("add event: %v", err)
+					}
+				}
+				return nil
+			}); err != nil {
+				s.log.Error("run in tx", zap.Error(err))
+				return
+			}
+		}()
 	}
 
 	return result, nil

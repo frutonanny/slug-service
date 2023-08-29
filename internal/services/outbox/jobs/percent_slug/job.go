@@ -2,15 +2,17 @@ package percent_slug
 
 import (
 	"context"
-	"github.com/frutonanny/slug-service/internal/services/outbox"
+
 	"go.uber.org/zap"
+
+	"github.com/frutonanny/slug-service/internal/services/outbox"
 )
 
 const Name = "percent_slug"
 
 type Job struct {
-	outbox.DefaultJob // todo хочу переложить в поле
-	log               *zap.Logger
+	outbox.DefaultJob
+	log *zap.Logger
 }
 
 func New(log *zap.Logger) *Job {

@@ -29,7 +29,7 @@ create table if not exists users_slugs
 );
 
 -- Таблица истории добавления и удаления пользователей в сегменты.
-create table if not exists users_slugs_history
+create table if not exists events
 (
     id         bigserial primary key,
     user_id    uuid        not null,
@@ -50,7 +50,7 @@ create table if not exists outbox
 
 -- +goose Down
 drop table outbox;
-drop table users_slugs_history;
+drop table events;
 drop table users_slugs;
 drop table users;
 drop table slugs;

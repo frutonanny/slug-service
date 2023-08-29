@@ -148,10 +148,12 @@ components:
           $ref: "#/components/schemas/UserID"
         add:
           type: array
+          maxLength: 100
           items:
             $ref: "#/components/schemas/AddSlugsData"
         delete:
           type: array
+          maxLength: 100
           items:
             $ref: "#/components/schemas/Slug"
 

@@ -70,7 +70,6 @@ func (s *Service) Run(ctx context.Context) error {
 	for i := 0; i < workers; i++ {
 		eg.Go(func() error {
 			for {
-				// Process all available jobs in one go.
 				if err := s.processJobs(ctx); err != nil {
 					if ctx.Err() != nil {
 						return nil

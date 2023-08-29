@@ -17,10 +17,10 @@ import (
 	"github.com/frutonanny/slug-service/internal/database"
 	serverGen "github.com/frutonanny/slug-service/internal/generated/server/v1"
 	logg "github.com/frutonanny/slug-service/internal/logger"
-	"github.com/frutonanny/slug-service/internal/repositories/operations"
+	"github.com/frutonanny/slug-service/internal/repositories/events"
 	outboxrepo "github.com/frutonanny/slug-service/internal/repositories/outbox"
 	slugrepo "github.com/frutonanny/slug-service/internal/repositories/slug"
-	userslugrepo "github.com/frutonanny/slug-service/internal/repositories/user_slug"
+	userslugrepo "github.com/frutonanny/slug-service/internal/repositories/users"
 	createslugservice "github.com/frutonanny/slug-service/internal/services/create_slug"
 	deleteslugservice "github.com/frutonanny/slug-service/internal/services/delete_slug"
 	getuserslugService "github.com/frutonanny/slug-service/internal/services/get_user_slug"
@@ -57,7 +57,7 @@ func run() error {
 	}
 
 	config := conf.Must(f.Value.String())
-	logger := logg.New()
+	logger := logg.Must()
 
 	// Postgres.
 	db := database.Must(config.DB.DSN)
@@ -78,17 +78,17 @@ func run() error {
 	// Repositories.
 	slugRepository := slugrepo.New(db)
 	outboxRepository := outboxrepo.New(db)
-	userSlugRepository := userslugrepo.New(db)
-	operationRepository := operations.New(db)
+	usersRepository := userslugrepo.New(db)
+	eventsRepository := events.New(db)
 
 	// Services.
 	outboxService := outboxservice.New(outboxRepository, db, logger)
 	outboxService.MustRegisterJob(percentslugjob.New(logger))
 
 	createSlugService := createslugservice.New(logger, outboxService, slugRepository, db)
-	deleteSlugService := deleteslugservice.New(logger, slugRepository, userSlugRepository, operationRepository, db)
-	modifyUserSlugService := modifyuserslugservice.New(logger, slugRepository, userSlugRepository, operationRepository, db)
-	getUserSlugService := getuserslugService.New(logger, userSlugRepository, operationRepository)
+	deleteSlugService := deleteslugservice.New(logger, slugRepository)
+	modifyUserSlugService := modifyuserslugservice.New(logger, slugRepository, usersRepository, eventsRepository, db)
+	getUserSlugService := getuserslugService.New(logger, usersRepository, eventsRepository, db)
 
 	srv, err := initServer(
 		net.JoinHostPort(config.Service.Host, config.Service.Port),

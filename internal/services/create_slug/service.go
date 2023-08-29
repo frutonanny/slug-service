@@ -1,3 +1,5 @@
+//go:generate mockgen -source=service.go -destination=mocks/service.gen.go
+
 package create_slug
 
 import (
@@ -19,7 +21,7 @@ func (o *Options) IsEmpty() bool {
 	return o.Percent == nil
 }
 
-type slugRepository interface {
+type slugRepo interface {
 	Create(ctx context.Context, name string, options slugrepo.Options) error
 }
 
@@ -34,22 +36,22 @@ type transactor interface {
 type Service struct {
 	log *zap.Logger
 
-	outboxService  outboxService
-	slugRepository slugRepository
-	transactor     transactor
+	outboxService outboxService
+	slugRepo      slugRepo
+	transactor    transactor
 }
 
 func New(
 	log *zap.Logger,
 	outboxService outboxService,
-	slugRepository slugRepository,
+	slugRepo slugRepo,
 	transactor transactor,
 ) *Service {
 	return &Service{
-		log:            log,
-		outboxService:  outboxService,
-		slugRepository: slugRepository,
-		transactor:     transactor,
+		log:           log,
+		outboxService: outboxService,
+		slugRepo:      slugRepo,
+		transactor:    transactor,
 	}
 }
 
@@ -58,7 +60,7 @@ func (s *Service) CreateSlug(ctx context.Context, name string, options Options) 
 		return s.createSlugWithOptions(ctx, name, options)
 	}
 
-	if err := s.slugRepository.Create(ctx, name, slugrepo.Options{}); err != nil {
+	if err := s.slugRepo.Create(ctx, name, slugrepo.Options{}); err != nil {
 		return fmt.Errorf("create slug: %v", err)
 	}
 
@@ -67,7 +69,13 @@ func (s *Service) CreateSlug(ctx context.Context, name string, options Options) 
 
 func (s *Service) createSlugWithOptions(ctx context.Context, name string, options Options) error {
 	if err := s.transactor.RunInTx(ctx, func(ctx context.Context) error {
-		if err := s.slugRepository.Create(ctx, name, slugrepo.Options{}); err != nil {
+		if err := s.slugRepo.Create(
+			ctx,
+			name,
+			slugrepo.Options{
+				Percent: options.Percent,
+			},
+		); err != nil {
 			s.log.Error("create slug", zap.Error(err))
 			return fmt.Errorf("create slug: %v", err)
 		}

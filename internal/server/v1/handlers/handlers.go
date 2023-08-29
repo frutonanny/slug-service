@@ -17,7 +17,7 @@ type deleteSlugService interface {
 }
 
 type modifyUserSlugService interface {
-	ModifySlugs(ctx context.Context, userID uuid.UUID, addSlugs []modifyslug.AddSlug, delete []string) error
+	ModifySlugs(ctx context.Context, userID uuid.UUID, addSlugs []modifyslug.Slug, delete []string) error
 }
 
 type getUserSlugService interface {

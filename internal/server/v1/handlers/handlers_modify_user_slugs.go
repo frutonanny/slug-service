@@ -23,10 +23,10 @@ func (h *Handlers) PostModifyUserSlugs(eCtx echo.Context) error {
 		})
 	}
 
-	var addSlugs []modifyslug.AddSlug
+	var addSlugs []modifyslug.Slug
 	if req.Add != nil {
 		for _, slug := range *req.Add {
-			addSlug := modifyslug.AddSlug{
+			addSlug := modifyslug.Slug{
 				Name: slug.Name,
 			}
 

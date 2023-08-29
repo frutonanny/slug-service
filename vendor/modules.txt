@@ -1,3 +1,6 @@
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
 # github.com/deepmap/oapi-codegen v1.13.4
 ## explicit; go 1.18
 github.com/deepmap/oapi-codegen/pkg/middleware
@@ -19,6 +22,9 @@ github.com/go-openapi/swag
 # github.com/golang-jwt/jwt v3.2.2+incompatible
 ## explicit
 github.com/golang-jwt/jwt
+# github.com/golang/mock v1.6.0
+## explicit; go 1.11
+github.com/golang/mock/gomock
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
@@ -90,12 +96,20 @@ github.com/mohae/deepcopy
 # github.com/perimeterx/marshmallow v1.1.5
 ## explicit; go 1.17
 github.com/perimeterx/marshmallow
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
 # github.com/pressly/goose/v3 v3.15.0
 ## explicit; go 1.19
 github.com/pressly/goose/v3
 github.com/pressly/goose/v3/internal/dialect
 github.com/pressly/goose/v3/internal/dialect/dialectquery
 github.com/pressly/goose/v3/internal/sqlparser
+# github.com/stretchr/testify v1.8.4
+## explicit; go 1.20
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
+github.com/stretchr/testify/suite
 # github.com/valyala/bytebufferpool v1.0.0
 ## explicit
 github.com/valyala/bytebufferpool
