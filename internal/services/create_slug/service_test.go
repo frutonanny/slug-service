@@ -18,6 +18,7 @@ func TestService_CreateSlug(t *testing.T) {
 	t.Run("success with options", func(t *testing.T) {
 		// Arrange.
 		ctx := context.Background()
+		id := int64(1)
 		name := "123"
 		percent := 50
 		options := createslugservice.Options{
@@ -35,7 +36,7 @@ func TestService_CreateSlug(t *testing.T) {
 		outboxService.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 		slugRepo := mock_create_slug.NewMockslugRepo(ctrl)
-		slugRepo.EXPECT().Create(gomock.Any(), name, optionRepo).Return(nil)
+		slugRepo.EXPECT().Create(gomock.Any(), name, optionRepo).Return(id, nil)
 
 		transactor := mock_create_slug.NewMocktransactor(ctrl)
 		transactor.EXPECT().RunInTx(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -56,6 +57,7 @@ func TestService_CreateSlug(t *testing.T) {
 		// Arrange.
 		ctx := context.Background()
 		name := "123"
+		id := int64(1)
 		percent := 50
 		options := createslugservice.Options{
 			Percent: &percent,
@@ -74,7 +76,7 @@ func TestService_CreateSlug(t *testing.T) {
 		outboxService.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).Return(errExpected)
 
 		slugRepo := mock_create_slug.NewMockslugRepo(ctrl)
-		slugRepo.EXPECT().Create(gomock.Any(), name, optionRepo).Return(nil)
+		slugRepo.EXPECT().Create(gomock.Any(), name, optionRepo).Return(id, nil)
 
 		transactor := mock_create_slug.NewMocktransactor(ctrl)
 		transactor.EXPECT().RunInTx(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -94,13 +96,14 @@ func TestService_CreateSlug(t *testing.T) {
 	t.Run("success without options", func(t *testing.T) {
 		// Arrange.
 		ctx := context.Background()
+		id := int64(1)
 		name := "123"
 
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		slugRepo := mock_create_slug.NewMockslugRepo(ctrl)
-		slugRepo.EXPECT().Create(gomock.Any(), name, gomock.Any()).Return(nil)
+		slugRepo.EXPECT().Create(gomock.Any(), name, gomock.Any()).Return(id, nil)
 
 		outboxService := mock_create_slug.NewMockoutboxService(ctrl)
 		transactor := mock_create_slug.NewMocktransactor(ctrl)

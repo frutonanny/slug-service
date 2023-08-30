@@ -37,11 +37,12 @@ func (m *MockusersRepo) EXPECT() *MockusersRepoMockRecorder {
 }
 
 // AddUserSlug mocks base method.
-func (m *MockusersRepo) AddUserSlug(ctx context.Context, user uuid.UUID, slugID int64, name string) error {
+func (m *MockusersRepo) AddUserSlug(ctx context.Context, user uuid.UUID, slugID int64, name string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddUserSlug", ctx, user, slugID, name)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddUserSlug indicates an expected call of AddUserSlug.
@@ -51,11 +52,12 @@ func (mr *MockusersRepoMockRecorder) AddUserSlug(ctx, user, slugID, name interfa
 }
 
 // AddUserSlugWithTtl mocks base method.
-func (m *MockusersRepo) AddUserSlugWithTtl(ctx context.Context, userID uuid.UUID, slugID int64, name string, ttl time.Time) error {
+func (m *MockusersRepo) AddUserSlugWithTtl(ctx context.Context, userID uuid.UUID, slugID int64, name string, ttl time.Time) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddUserSlugWithTtl", ctx, userID, slugID, name, ttl)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddUserSlugWithTtl indicates an expected call of AddUserSlugWithTtl.
@@ -153,19 +155,19 @@ func (m *MockeventsRepo) EXPECT() *MockeventsRepoMockRecorder {
 	return m.recorder
 }
 
-// AddEvents mocks base method.
-func (m *MockeventsRepo) AddEvents(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error) {
+// AddEvent mocks base method.
+func (m *MockeventsRepo) AddEvent(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddEvents", ctx, userID, slugID, event)
+	ret := m.ctrl.Call(m, "AddEvent", ctx, userID, slugID, event)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AddEvents indicates an expected call of AddEvents.
-func (mr *MockeventsRepoMockRecorder) AddEvents(ctx, userID, slugID, event interface{}) *gomock.Call {
+// AddEvent indicates an expected call of AddEvent.
+func (mr *MockeventsRepoMockRecorder) AddEvent(ctx, userID, slugID, event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEvents", reflect.TypeOf((*MockeventsRepo)(nil).AddEvents), ctx, userID, slugID, event)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEvent", reflect.TypeOf((*MockeventsRepo)(nil).AddEvent), ctx, userID, slugID, event)
 }
 
 // Mocktransactor is a mock of transactor interface.

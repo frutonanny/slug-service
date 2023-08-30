@@ -1,0 +1,6 @@
+POST localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99"
+}

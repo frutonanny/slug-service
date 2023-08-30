@@ -22,7 +22,7 @@ func (o *Options) IsEmpty() bool {
 }
 
 type slugRepo interface {
-	Create(ctx context.Context, name string, options slugrepo.Options) error
+	Create(ctx context.Context, name string, options slugrepo.Options) (int64, error)
 }
 
 type outboxService interface {
@@ -60,7 +60,7 @@ func (s *Service) CreateSlug(ctx context.Context, name string, options Options) 
 		return s.createSlugWithOptions(ctx, name, options)
 	}
 
-	if err := s.slugRepo.Create(ctx, name, slugrepo.Options{}); err != nil {
+	if _, err := s.slugRepo.Create(ctx, name, slugrepo.Options{}); err != nil {
 		return fmt.Errorf("create slug: %v", err)
 	}
 
@@ -69,7 +69,7 @@ func (s *Service) CreateSlug(ctx context.Context, name string, options Options) 
 
 func (s *Service) createSlugWithOptions(ctx context.Context, name string, options Options) error {
 	if err := s.transactor.RunInTx(ctx, func(ctx context.Context) error {
-		if err := s.slugRepo.Create(
+		if _, err := s.slugRepo.Create(
 			ctx,
 			name,
 			slugrepo.Options{

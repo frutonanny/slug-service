@@ -36,13 +36,13 @@ func TestService_ModifySlugs(t *testing.T) {
 
 		usersRepo := mock_modify_slug.NewMockusersRepo(ctrl)
 		usersRepo.EXPECT().CreateUserIfNotExist(gomock.Any(), userID).Return(nil)
-		usersRepo.EXPECT().AddUserSlugWithTtl(gomock.Any(), userID, slugID, name, ttl).Return(nil)
+		usersRepo.EXPECT().AddUserSlugWithTtl(gomock.Any(), userID, slugID, name, ttl).Return(int64(0), nil)
 
 		slugRepo := mock_modify_slug.NewMockslugRepo(ctrl)
 		slugRepo.EXPECT().GetID(gomock.Any(), name).Return(slugID, nil)
 
 		eventsRepo := mock_modify_slug.NewMockeventsRepo(ctrl)
-		eventsRepo.EXPECT().AddEvents(gomock.Any(), userID, slugID, services.AddSlug)
+		eventsRepo.EXPECT().AddEvent(gomock.Any(), userID, slugID, services.AddSlug)
 
 		transactor := mock_modify_slug.NewMocktransactor(ctrl)
 		transactor.EXPECT().RunInTx(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -83,7 +83,7 @@ func TestService_ModifySlugs(t *testing.T) {
 
 		usersRepo := mock_modify_slug.NewMockusersRepo(ctrl)
 		usersRepo.EXPECT().CreateUserIfNotExist(gomock.Any(), userID).Return(nil)
-		usersRepo.EXPECT().AddUserSlugWithTtl(gomock.Any(), userID, slugID, name, ttl).Return(nil)
+		usersRepo.EXPECT().AddUserSlugWithTtl(gomock.Any(), userID, slugID, name, ttl).Return(int64(0), nil)
 		usersRepo.EXPECT().DeleteUserSlug(gomock.Any(), userID, slugID).Return(nil)
 
 		slugRepo := mock_modify_slug.NewMockslugRepo(ctrl)
@@ -91,8 +91,8 @@ func TestService_ModifySlugs(t *testing.T) {
 		slugRepo.EXPECT().GetID(gomock.Any(), nameDelete).Return(slugID, nil)
 
 		eventsRepo := mock_modify_slug.NewMockeventsRepo(ctrl)
-		eventsRepo.EXPECT().AddEvents(gomock.Any(), userID, slugID, services.AddSlug)
-		eventsRepo.EXPECT().AddEvents(gomock.Any(), userID, slugID, services.DeleteSlug)
+		eventsRepo.EXPECT().AddEvent(gomock.Any(), userID, slugID, services.AddSlug)
+		eventsRepo.EXPECT().AddEvent(gomock.Any(), userID, slugID, services.DeleteSlug)
 
 		transactor := mock_modify_slug.NewMocktransactor(ctrl)
 		transactor.EXPECT().RunInTx(gomock.Any(), gomock.Any()).DoAndReturn(

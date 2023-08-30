@@ -24,35 +24,40 @@ func New(db *database.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, name string, options Options) error {
-	const query = `insert into "slugs" (name, options) values ($1, $2);`
+func (r *Repository) Create(ctx context.Context, name string, options Options) (int64, error) {
+	const query = `insert into "slugs" (name, options) values ($1, $2) returning id;`
 
 	b, err := json.Marshal(options)
 	if err != nil {
-		return fmt.Errorf("marshal options: %v", err)
+		return 0, fmt.Errorf("marshal options: %v", err)
 	}
-
-	if _, err = r.db.Exec(ctx, query, name, string(b)); err != nil {
-		return fmt.Errorf("exec insert: %v", err)
-	}
-
-	return nil
-}
-
-// Delete - метод удаления slug. Он полностью не удаляет из базы, а заносит данные в поле deleted_at.
-func (r *Repository) Delete(ctx context.Context, name string) (int64, error) {
-	const query = `update "slugs" set "deleted_at" = now() where "name" = $1 returning id;`
 
 	var id int64
-	if err := r.db.QueryRow(ctx, query, name).Scan(&id); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return 0, ErrRepoSlugNotFound
-		}
-
+	if err := r.db.QueryRow(ctx, query, name, string(b)).Scan(&id); err != nil {
 		return 0, fmt.Errorf("query row: %v", err)
 	}
 
 	return id, nil
+}
+
+// Delete - метод удаления slug. Он полностью не удаляет из базы, а заносит данные в поле deleted_at.
+func (r *Repository) Delete(ctx context.Context, name string) error {
+	const query = `update "slugs" set "deleted_at" = now() where "name" = $1;`
+
+	res, err := r.db.Exec(ctx, query, name)
+	if err != nil {
+		return fmt.Errorf("exec: %v", err)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("rows affect: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return ErrRepoSlugNotFound
+	}
+
+	return nil
 }
 
 func (r *Repository) GetID(ctx context.Context, name string) (int64, error) {

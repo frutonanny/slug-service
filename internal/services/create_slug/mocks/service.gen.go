@@ -36,11 +36,12 @@ func (m *MockslugRepo) EXPECT() *MockslugRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockslugRepo) Create(ctx context.Context, name string, options slug.Options) error {
+func (m *MockslugRepo) Create(ctx context.Context, name string, options slug.Options) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, name, options)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.

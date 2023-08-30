@@ -31,15 +31,15 @@ func (r *Repository) CreateUserIfNotExist(ctx context.Context, userID uuid.UUID)
 	return nil
 }
 
-func (r *Repository) AddUserSlug(ctx context.Context, userID uuid.UUID, slugID int64, name string) error {
-	const query = `insert into "users_slugs" (user_id, slug_id, slug_name) values ($1, $2, $3);`
+func (r *Repository) AddUserSlug(ctx context.Context, userID uuid.UUID, slugID int64, name string) (int64, error) {
+	const query = `insert into "users_slugs" (user_id, slug_id, slug_name) values ($1, $2, $3) returning id;`
 
-	_, err := r.db.Exec(ctx, query, userID, slugID, name)
-	if err != nil {
-		return fmt.Errorf("exec insert: %v", err)
+	var id int64
+	if err := r.db.QueryRow(ctx, query, userID, slugID, name).Scan(&id); err != nil {
+		return 0, fmt.Errorf("query row: %v", err)
 	}
 
-	return nil
+	return id, nil
 }
 
 func (r *Repository) AddUserSlugWithTtl(
@@ -48,13 +48,15 @@ func (r *Repository) AddUserSlugWithTtl(
 	slugID int64,
 	name string,
 	ttl time.Time,
-) error {
-	const query = `insert into "users_slugs" (user_id, slug_id, name, slug_ttl) values ($1, $2, $3, $4);`
+) (int64, error) {
+	const query = `insert into "users_slugs" (user_id, slug_id, slug_name, slug_ttl) values ($1, $2, $3, $4) returning id;`
 
-	if _, err := r.db.Exec(ctx, query, userID, slugID, name, ttl); err != nil {
-		return fmt.Errorf("exec insert: %v", err)
+	var id int64
+	if err := r.db.QueryRow(ctx, query, userID, slugID, name, ttl).Scan(&id); err != nil {
+		return 0, fmt.Errorf("query row: %v", err)
 	}
-	return nil
+
+	return id, nil
 }
 
 func (r *Repository) DeleteUserSlug(ctx context.Context, userID uuid.UUID, slugID int64) error {

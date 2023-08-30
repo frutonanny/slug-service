@@ -13,7 +13,7 @@ import (
 var ErrNoJobs = errors.New("no jobs found")
 
 type Job struct {
-	ID   string
+	ID   int64
 	Name string
 	Data string
 }
@@ -43,7 +43,7 @@ func (r *Repository) FindJob(ctx context.Context) (Job, error) {
 	return j, nil
 }
 
-func (r *Repository) ReserveJob(ctx context.Context, id string, until time.Time) error {
+func (r *Repository) ReserveJob(ctx context.Context, id int64, until time.Time) error {
 	const query = `update "outbox" 
  					set "reserved_until" = $1 
 					where "id" = $2;`
@@ -67,7 +67,7 @@ func (r *Repository) CreateJob(ctx context.Context, name, data string) error {
 	return nil
 }
 
-func (r *Repository) DeleteJob(ctx context.Context, jobID string) error {
+func (r *Repository) DeleteJob(ctx context.Context, jobID int64) error {
 	const query = `delete from "outbox" where id = $1;`
 
 	_, err := r.db.Exec(ctx, query, jobID)

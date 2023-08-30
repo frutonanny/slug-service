@@ -26,7 +26,7 @@ type usersRepo interface {
 }
 
 type eventsRepo interface {
-	AddEvents(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error)
+	AddEvent(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error)
 }
 
 type transactor interface {
@@ -94,7 +94,7 @@ func (s *Service) GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, 
 						return fmt.Errorf("delete users_slugs: %v", err)
 					}
 
-					if _, err := s.eventsRepo.AddEvents(
+					if _, err := s.eventsRepo.AddEvent(
 						ctx,
 						userID,
 						slugID,
@@ -104,12 +104,17 @@ func (s *Service) GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, 
 						return fmt.Errorf("add event: %v", err)
 					}
 				}
+
 				return nil
 			}); err != nil {
 				s.log.Error("run in tx", zap.Error(err))
 				return
 			}
 		}()
+	}
+
+	if len(result) == 0 {
+		return []string{}, nil
 	}
 
 	return result, nil

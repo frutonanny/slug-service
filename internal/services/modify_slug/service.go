@@ -24,8 +24,8 @@ type Slug struct {
 
 type usersRepo interface {
 	CreateUserIfNotExist(ctx context.Context, userID uuid.UUID) error
-	AddUserSlug(ctx context.Context, user uuid.UUID, slugID int64, name string) error
-	AddUserSlugWithTtl(ctx context.Context, userID uuid.UUID, slugID int64, name string, ttl time.Time) error
+	AddUserSlug(ctx context.Context, user uuid.UUID, slugID int64, name string) (int64, error)
+	AddUserSlugWithTtl(ctx context.Context, userID uuid.UUID, slugID int64, name string, ttl time.Time) (int64, error)
 	DeleteUserSlug(ctx context.Context, user uuid.UUID, slugID int64) error
 }
 
@@ -34,7 +34,7 @@ type slugRepo interface {
 }
 
 type eventsRepo interface {
-	AddEvents(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error)
+	AddEvent(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error)
 }
 
 type transactor interface {
@@ -86,21 +86,21 @@ func (s *Service) ModifySlugs(ctx context.Context, userID uuid.UUID, add []Slug,
 					return fmt.Errorf("get id: %v", err)
 				}
 
+				if _, err := s.eventsRepo.AddEvent(ctx, userID, slugID, services.AddSlug); err != nil {
+					s.log.Error("add event", zap.Error(err))
+					return fmt.Errorf("add event: %v", err)
+				}
+
 				if slug.Ttl.IsZero() {
-					if err := s.usersRepo.AddUserSlug(ctx, userID, slugID, slug.Name); err != nil {
+					if _, err := s.usersRepo.AddUserSlug(ctx, userID, slugID, slug.Name); err != nil {
 						s.log.Error("add users_slug", zap.Error(err))
 						return fmt.Errorf("add users_slug: %v", err)
 					}
-				}
-
-				if err := s.usersRepo.AddUserSlugWithTtl(ctx, userID, slugID, slug.Name, slug.Ttl); err != nil {
-					s.log.Error("add users_slugs with ttl", zap.Error(err))
-					return fmt.Errorf("add users_slugs with ttl: %v", err)
-				}
-
-				if _, err := s.eventsRepo.AddEvents(ctx, userID, slugID, services.AddSlug); err != nil {
-					s.log.Error("add event", zap.Error(err))
-					return fmt.Errorf("add event: %v", err)
+				} else {
+					if _, err := s.usersRepo.AddUserSlugWithTtl(ctx, userID, slugID, slug.Name, slug.Ttl); err != nil {
+						s.log.Error("add users_slugs with ttl", zap.Error(err))
+						return fmt.Errorf("add users_slugs with ttl: %v", err)
+					}
 				}
 			}
 		}
@@ -122,7 +122,7 @@ func (s *Service) ModifySlugs(ctx context.Context, userID uuid.UUID, add []Slug,
 					return fmt.Errorf("delete users_slugs: %v", err)
 				}
 
-				if _, err := s.eventsRepo.AddEvents(ctx, userID, slugID, services.DeleteSlug); err != nil {
+				if _, err := s.eventsRepo.AddEvent(ctx, userID, slugID, services.DeleteSlug); err != nil {
 					s.log.Error("add events", zap.Error(err))
 					return fmt.Errorf("add event: %v", err)
 				}

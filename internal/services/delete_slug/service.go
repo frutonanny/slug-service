@@ -15,7 +15,7 @@ import (
 var ErrSlugNotFound = errors.New("slug not found")
 
 type slugRepo interface {
-	Delete(ctx context.Context, name string) (int64, error)
+	Delete(ctx context.Context, name string) error
 }
 
 type Service struct {
@@ -38,7 +38,7 @@ func New(
 // 1. Помечает сегмент удаленным.
 // 2. Пишет событие в slug_events, что сегмент был удален.
 func (s *Service) DeleteSlug(ctx context.Context, name string) error {
-	if _, err := s.slugRepo.Delete(ctx, name); err != nil {
+	if err := s.slugRepo.Delete(ctx, name); err != nil {
 		if errors.Is(slugrepo.ErrRepoSlugNotFound, err) {
 			return ErrSlugNotFound
 		}

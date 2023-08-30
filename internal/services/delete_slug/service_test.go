@@ -18,13 +18,12 @@ func TestService_DeleteSlug(t *testing.T) {
 		// Arrange.
 		ctx := context.Background()
 		name := "123"
-		id := int64(1)
 
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		slugRepo := mock_delete_slug.NewMockslugRepo(ctrl)
-		slugRepo.EXPECT().Delete(gomock.Any(), name).Return(id, nil)
+		slugRepo.EXPECT().Delete(gomock.Any(), name).Return(nil)
 
 		s := deleteslugservice.New(zap.L(), slugRepo)
 
@@ -44,7 +43,7 @@ func TestService_DeleteSlug(t *testing.T) {
 		defer ctrl.Finish()
 
 		slugRepo := mock_delete_slug.NewMockslugRepo(ctrl)
-		slugRepo.EXPECT().Delete(gomock.Any(), name).Return(int64(0), slugrepo.ErrRepoSlugNotFound)
+		slugRepo.EXPECT().Delete(gomock.Any(), name).Return(slugrepo.ErrRepoSlugNotFound)
 
 		s := deleteslugservice.New(zap.L(), slugRepo)
 

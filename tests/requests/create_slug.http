@@ -10,8 +10,13 @@ POST localhost:8081/v1/createSlug
 Content-Type: application/json
 
 {
-  "name": "AVITO_VOICE_MESSAGES_40%",
-  "options": {
-    "percent": 40
-  }
+  "name": "AVITO_PERFORMANCE_VAS"
+}
+
+###
+POST localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_DISCOUNT_30"
 }
