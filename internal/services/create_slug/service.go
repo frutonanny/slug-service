@@ -69,13 +69,14 @@ func (s *Service) CreateSlug(ctx context.Context, name string, options Options) 
 
 func (s *Service) createSlugWithOptions(ctx context.Context, name string, options Options) error {
 	if err := s.transactor.RunInTx(ctx, func(ctx context.Context) error {
-		if _, err := s.slugRepo.Create(
+		id, err := s.slugRepo.Create(
 			ctx,
 			name,
 			slugrepo.Options{
 				Percent: options.Percent,
 			},
-		); err != nil {
+		)
+		if err != nil {
 			s.log.Error("create slug", zap.Error(err))
 			return fmt.Errorf("create slug: %v", err)
 		}
@@ -83,8 +84,9 @@ func (s *Service) createSlugWithOptions(ctx context.Context, name string, option
 		// Заготовка на случай, если появятся другие опции, требующие других фоновых задач.
 		if options.Percent != nil {
 			data := percentslugjob.Data{
-				Name:    name,
-				Percent: *options.Percent,
+				SlugID:   id,
+				SlugName: name,
+				Percent:  *options.Percent,
 			}
 
 			b, err := json.Marshal(data)

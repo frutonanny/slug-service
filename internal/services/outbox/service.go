@@ -15,8 +15,8 @@ import (
 type jobsRepository interface {
 	CreateJob(ctx context.Context, name, data string) error
 	FindJob(ctx context.Context) (outboxrepo.Job, error)
-	ReserveJob(ctx context.Context, id string, until time.Time) error
-	DeleteJob(ctx context.Context, jobID string) error
+	ReserveJob(ctx context.Context, id int64, until time.Time) error
+	DeleteJob(ctx context.Context, jobID int64) error
 }
 
 type transactor interface {

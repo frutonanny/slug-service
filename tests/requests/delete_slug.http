@@ -1,6 +1,0 @@
-POST localhost:8081/v1/deleteSlug
-Content-Type: application/json
-
-{
-  "name": "AVITO_VOICE_MESSAGES"
-}

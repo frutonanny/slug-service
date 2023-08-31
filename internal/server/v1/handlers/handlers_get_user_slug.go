@@ -22,7 +22,7 @@ func (h *Handlers) PostGetUserSlugs(eCtx echo.Context) error {
 		})
 	}
 
-	slugs, err := h.getUserSlugService.GetUserSlug(ctx, req.UserID)
+	slugs, err := h.getUserSlugService.GetUserSlugs(ctx, req.UserID, false)
 	if err != nil {
 		return eCtx.JSON(http.StatusInternalServerError, v1.GetUserSlugsResponse{
 			Error: &v1.Error{

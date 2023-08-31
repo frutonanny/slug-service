@@ -2,6 +2,7 @@ package outbox_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
@@ -32,11 +33,71 @@ func (s *RepositorySuite) SetupSuite() {
 }
 
 func (s *RepositorySuite) TestRepository_FindJob() {
-	// TODO
+	// Arrange.
+	ctx, cancel := s.Context()
+	defer cancel()
+
+	var (
+		name = "123"
+		data = "data"
+	)
+
+	err := s.repository.CreateJob(ctx, name, data)
+	s.Require().NoError(err)
+
+	const queryInsert = `insert into "outbox" (name, data) values($1, $2) returning id;`
+	rowInsert := s.DB.QueryRow(ctx, queryInsert, name, data)
+	s.Require().NoError(rowInsert.Err())
+
+	var id int64
+	err = rowInsert.Scan(&id)
+	s.Require().NoError(rowInsert.Err())
+
+	// Action.
+	actualJob, err := s.repository.FindJob(ctx)
+
+	// Assert.
+	s.Require().NoError(err)
+	s.Assert().EqualValues(name, actualJob.Name)
+	s.Assert().EqualValues(data, actualJob.Data)
 }
 
 func (s *RepositorySuite) TestRepository_ReserveJob() {
-	// TODO
+	// Arrange.
+	ctx, cancel := s.Context()
+	defer cancel()
+
+	var (
+		name = "123"
+		data = "data"
+	)
+
+	err := s.repository.CreateJob(ctx, name, data)
+	s.Require().NoError(err)
+
+	const queryInsert = `insert into "outbox" (name, data) values($1, $2) returning id;`
+	rowInsert := s.DB.QueryRow(ctx, queryInsert, name, data)
+	s.Require().NoError(rowInsert.Err())
+
+	var id int64
+	err = rowInsert.Scan(&id)
+	s.Require().NoError(rowInsert.Err())
+
+	until := time.Now().Add(2 * time.Hour).UTC()
+
+	// Action.
+	err = s.repository.ReserveJob(ctx, id, until)
+
+	// Assert.
+	s.Require().NoError(err)
+
+	const queryCheck = `select "reserved_until" from "outbox" where id = $1;`
+	row := s.DB.QueryRow(ctx, queryCheck, id)
+	s.Require().NoError(row.Err())
+
+	var reservedUntil time.Time
+	err = row.Scan(&reservedUntil)
+	s.Assert().Equal(until.Unix(), reservedUntil.Unix())
 }
 
 func (s *RepositorySuite) TestRepository_CreateJob() {
@@ -77,8 +138,16 @@ func (s *RepositorySuite) TestRepository_DeleteJob() {
 		data = "data"
 	)
 
+	const queryInsert = `insert into "outbox" (name, data) values($1, $2) returning id;`
+	rowInsert := s.DB.QueryRow(ctx, queryInsert, name, data)
+	s.Require().NoError(rowInsert.Err())
+
+	var id int64
+	err := rowInsert.Scan(&id)
+	s.Require().NoError(rowInsert.Err())
+
 	// Action.
-	err := s.repository.CreateJob(ctx, name, data)
+	err = s.repository.DeleteJob(ctx, id)
 
 	// Assert.
 	s.Require().NoError(err)
@@ -92,5 +161,5 @@ func (s *RepositorySuite) TestRepository_DeleteJob() {
 
 	err = row.Scan(&exist)
 	s.Require().NoError(err)
-	s.Assert().True(exist)
+	s.Assert().False(exist)
 }

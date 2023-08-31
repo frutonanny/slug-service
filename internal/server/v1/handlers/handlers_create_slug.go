@@ -28,6 +28,10 @@ func (h *Handlers) PostCreateSlug(eCtx echo.Context) error {
 		if req.Options.Percent != nil {
 			options.Percent = req.Options.Percent
 		}
+
+		if req.Options != nil {
+			options.Percent = req.Options.Percent
+		}
 	}
 
 	if err := h.createSlugService.CreateSlug(ctx, req.Name, options); err != nil {

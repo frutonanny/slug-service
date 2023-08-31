@@ -76,6 +76,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/GetUserSlugsResponse"
 
+  /getReport:
+    post:
+      description: "Получить ссылку на CSV-файл, в котором лежит отчет по пользователю за период period."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetReportRequest"
+      responses:
+        '200':
+          description: "Ссылка на CSV файл."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetReportResponse"
+
 components:
   schemas:
     Error:
@@ -200,3 +217,34 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Slug"
+
+    GetReportRequest:
+      required:
+        - userID
+        - period
+      properties:
+        userID:
+          $ref: "#/components/schemas/UserID"
+        period:
+          type: string
+          minLength: 7
+          maxLength: 7
+          description: "Время в формате 'yyyy-mm'."
+          example: "2023-08"
+
+    GetReportResponse:
+      properties:
+        data:
+          $ref: "#/components/schemas/GetReportData"
+        error:
+          $ref: "#/components/schemas/Error"
+
+    GetReportData:
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          minLength: 1
+          format: uri
+          description: "Ссылка на CSV файл."

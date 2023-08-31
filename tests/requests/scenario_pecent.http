@@ -1,0 +1,47 @@
+### Создаем пользователя с определенным ID, который попадет в нужный процент.
+
+POST http://localhost:8081/v1/modifyUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "030c48d3-12a3-4ea0-a334-d9a141c7a1b8"
+}
+
+### Создаем пользователя с определенным ID, который не попадет в нужный процент.
+
+POST http://localhost:8081/v1/modifyUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "9305ea2f-0c7c-4a08-a1fa-918a496e1701"
+}
+
+### Добавляем сегмент, в который должны войти 30% пользователей. В том числе пользователь, созданный выше.
+
+POST http://localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_DISCOUNT_30",
+  "options": {
+    "percent": 30
+  }
+}
+
+### Запрашиваем у попавшего пользователя сегменты.
+
+POST http://localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "030c48d3-12a3-4ea0-a334-d9a141c7a1b8"
+}
+
+### Запрашиваем у не попавшего пользователя сегменты.
+
+POST http://localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "9305ea2f-0c7c-4a08-a1fa-918a496e1701"
+}

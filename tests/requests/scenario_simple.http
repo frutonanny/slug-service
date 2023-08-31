@@ -1,0 +1,92 @@
+### Добавляем сегмент "AVITO_VOICE_MESSAGES".
+
+POST http://localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_VOICE_MESSAGES"
+}
+
+### Добавляем сегмент "AVITO_PERFORMANCE_VAS".
+
+POST http://localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_PERFORMANCE_VAS"
+}
+
+### Добавляем пользователю сегменты.
+
+POST http://localhost:8081/v1/modifyUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99",
+  "add": [
+    {
+      "name": "AVITO_VOICE_MESSAGES"
+    },
+    {
+      "name": "AVITO_PERFORMANCE_VAS"
+    }
+  ]
+}
+
+### Запрашиваем у пользователя сегменты.
+
+POST http://localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99"
+}
+
+### Удаляем у пользователя сегмент.
+
+POST http://localhost:8081/v1/modifyUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99",
+  "delete": [
+    "AVITO_PERFORMANCE_VAS"
+  ]
+}
+
+### Запрашиваем у пользователя сегменты.
+
+POST http://localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99"
+}
+
+### Удаляем сегмент.
+
+POST http://localhost:8081/v1/deleteSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_VOICE_MESSAGES"
+}
+
+### Запрашиваем у пользователя сегменты.
+
+POST http://localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99"
+}
+
+### Получаем отчет по пользователю.
+
+POST localhost:8081/v1/getReport
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99",
+  "period": "2023-09"
+}

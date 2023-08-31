@@ -17,16 +17,19 @@ import (
 	"github.com/frutonanny/slug-service/internal/database"
 	serverGen "github.com/frutonanny/slug-service/internal/generated/server/v1"
 	logg "github.com/frutonanny/slug-service/internal/logger"
+	"github.com/frutonanny/slug-service/internal/minio"
 	"github.com/frutonanny/slug-service/internal/repositories/events"
 	outboxrepo "github.com/frutonanny/slug-service/internal/repositories/outbox"
 	slugrepo "github.com/frutonanny/slug-service/internal/repositories/slug"
 	userslugrepo "github.com/frutonanny/slug-service/internal/repositories/users"
 	createslugservice "github.com/frutonanny/slug-service/internal/services/create_slug"
 	deleteslugservice "github.com/frutonanny/slug-service/internal/services/delete_slug"
-	getuserslugService "github.com/frutonanny/slug-service/internal/services/get_user_slug"
+	getreportservice "github.com/frutonanny/slug-service/internal/services/get_report"
+	getuserslugservice "github.com/frutonanny/slug-service/internal/services/get_user_slug"
 	modifyuserslugservice "github.com/frutonanny/slug-service/internal/services/modify_slug"
 	outboxservice "github.com/frutonanny/slug-service/internal/services/outbox"
 	percentslugjob "github.com/frutonanny/slug-service/internal/services/outbox/jobs/percent_slug"
+	sortinghat "github.com/frutonanny/slug-service/internal/services/sorting_hat"
 )
 
 var configFile string
@@ -75,6 +78,13 @@ func run() error {
 		return fmt.Errorf("get swagger: %v", err)
 	}
 
+	// Minio.
+	minioClient := minio.Must(
+		config.Minio.Endpoint,
+		config.Minio.AccessKeyID,
+		config.Minio.SecretAccessKey,
+	)
+
 	// Repositories.
 	slugRepository := slugrepo.New(db)
 	outboxRepository := outboxrepo.New(db)
@@ -82,13 +92,21 @@ func run() error {
 	eventsRepository := events.New(db)
 
 	// Services.
+	sortingHatService := sortinghat.New()
 	outboxService := outboxservice.New(outboxRepository, db, logger)
-	outboxService.MustRegisterJob(percentslugjob.New(logger))
+	outboxService.MustRegisterJob(percentslugjob.New(logger, sortingHatService, usersRepository, eventsRepository, db))
 
 	createSlugService := createslugservice.New(logger, outboxService, slugRepository, db)
 	deleteSlugService := deleteslugservice.New(logger, slugRepository)
 	modifyUserSlugService := modifyuserslugservice.New(logger, slugRepository, usersRepository, eventsRepository, db)
-	getUserSlugService := getuserslugService.New(logger, usersRepository, eventsRepository, db)
+	getUserSlugService := getuserslugservice.New(logger, usersRepository, eventsRepository, db)
+	getReportService := getreportservice.New(
+		logger,
+		getUserSlugService,
+		eventsRepository,
+		minioClient,
+		config.Minio.PublicEndpoint,
+	)
 
 	srv, err := initServer(
 		net.JoinHostPort(config.Service.Host, config.Service.Port),
@@ -97,6 +115,7 @@ func run() error {
 		deleteSlugService,
 		modifyUserSlugService,
 		getUserSlugService,
+		getReportService,
 	)
 	if err != nil {
 		return fmt.Errorf("init server: %v", err)

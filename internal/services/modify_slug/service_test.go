@@ -2,6 +2,7 @@ package modify_slug_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -107,5 +108,48 @@ func TestService_ModifySlugs(t *testing.T) {
 
 		// Assert.
 		assert.NoError(t, err)
+	})
+
+	t.Run("failed add and delete slugs", func(t *testing.T) {
+		// Arrange.
+		ctx := context.Background()
+		userID := uuid.New()
+		name := "add"
+		adds := []modifyslug.Slug{
+			{
+				Name: name,
+			},
+		}
+
+		errExpected := errors.New("error")
+
+		slugID := int64(1)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		usersRepo := mock_modify_slug.NewMockusersRepo(ctrl)
+		usersRepo.EXPECT().CreateUserIfNotExist(gomock.Any(), userID).Return(nil)
+		usersRepo.EXPECT().AddUserSlug(gomock.Any(), userID, slugID, name).Return(int64(0), errExpected)
+
+		slugRepo := mock_modify_slug.NewMockslugRepo(ctrl)
+		slugRepo.EXPECT().GetID(gomock.Any(), name).Return(slugID, nil)
+
+		eventsRepo := mock_modify_slug.NewMockeventsRepo(ctrl)
+		eventsRepo.EXPECT().AddEvent(gomock.Any(), userID, slugID, services.AddSlug).Return(int64(0), nil)
+
+		transactor := mock_modify_slug.NewMocktransactor(ctrl)
+		transactor.EXPECT().RunInTx(gomock.Any(), gomock.Any()).DoAndReturn(
+			func(ctx context.Context, f func(ctx context.Context) error) error {
+				return f(ctx)
+			})
+
+		s := modifyslug.New(zap.L(), slugRepo, usersRepo, eventsRepo, transactor)
+
+		// Action.
+		err := s.ModifySlugs(ctx, userID, adds, []string{})
+
+		// Assert.
+		assert.Error(t, err)
 	})
 }

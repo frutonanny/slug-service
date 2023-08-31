@@ -62,6 +62,27 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+// GetReportData defines model for GetReportData.
+type GetReportData struct {
+	// Ссылка на CSV файл.
+	Url string `json:"url"`
+}
+
+// GetReportRequest defines model for GetReportRequest.
+type GetReportRequest struct {
+	// Время в формате 'yyyy-mm'.
+	Period string `json:"period"`
+
+	// Идентификатор пользователя.
+	UserID UserID `json:"userID"`
+}
+
+// GetReportResponse defines model for GetReportResponse.
+type GetReportResponse struct {
+	Data  *GetReportData `json:"data,omitempty"`
+	Error *Error         `json:"error,omitempty"`
+}
+
 // GetUserSlugsData defines model for GetUserSlugsData.
 type GetUserSlugsData struct {
 	Slugs []Slug `json:"slugs"`
@@ -106,6 +127,9 @@ type PostCreateSlugJSONBody = CreateSlugRequest
 // PostDeleteSlugJSONBody defines parameters for PostDeleteSlug.
 type PostDeleteSlugJSONBody = DeleteSlugRequest
 
+// PostGetReportJSONBody defines parameters for PostGetReport.
+type PostGetReportJSONBody = GetReportRequest
+
 // PostGetUserSlugsJSONBody defines parameters for PostGetUserSlugs.
 type PostGetUserSlugsJSONBody = GetUserSlugsRequest
 
@@ -117,6 +141,9 @@ type PostCreateSlugJSONRequestBody = PostCreateSlugJSONBody
 
 // PostDeleteSlugJSONRequestBody defines body for PostDeleteSlug for application/json ContentType.
 type PostDeleteSlugJSONRequestBody = PostDeleteSlugJSONBody
+
+// PostGetReportJSONRequestBody defines body for PostGetReport for application/json ContentType.
+type PostGetReportJSONRequestBody = PostGetReportJSONBody
 
 // PostGetUserSlugsJSONRequestBody defines body for PostGetUserSlugs for application/json ContentType.
 type PostGetUserSlugsJSONRequestBody = PostGetUserSlugsJSONBody
@@ -132,6 +159,9 @@ type ServerInterface interface {
 
 	// (POST /deleteSlug)
 	PostDeleteSlug(ctx echo.Context) error
+
+	// (POST /getReport)
+	PostGetReport(ctx echo.Context) error
 
 	// (POST /getUserSlugs)
 	PostGetUserSlugs(ctx echo.Context) error
@@ -160,6 +190,15 @@ func (w *ServerInterfaceWrapper) PostDeleteSlug(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.PostDeleteSlug(ctx)
+	return err
+}
+
+// PostGetReport converts echo context to params.
+func (w *ServerInterfaceWrapper) PostGetReport(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.PostGetReport(ctx)
 	return err
 }
 
@@ -211,6 +250,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/createSlug", wrapper.PostCreateSlug)
 	router.POST(baseURL+"/deleteSlug", wrapper.PostDeleteSlug)
+	router.POST(baseURL+"/getReport", wrapper.PostGetReport)
 	router.POST(baseURL+"/getUserSlugs", wrapper.PostGetUserSlugs)
 	router.POST(baseURL+"/modifyUserSlugs", wrapper.PostModifyUserSlugs)
 
@@ -219,24 +259,27 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7xX227bRhD9FWHaR8qkbonDN9d2AwMNEsRxHhoYwYYcywzES3ZXho1AgOME7UMDFOhT",
-	"H3pB/8BVLFiIXeYXhn9U7JKWxYslpY0MGLAkzs7lnNk5w9fghH4UBhhIAfZrEM4++kx/XHPd7V6/KzaY",
-	"ZOp7xMMIufRQPw2Yj+r/1xz3wIavzGs/ZubEVMdhYICUPWXqonC4F0kvDMAG+iU5phFdJj/X6JSGyQnF",
-	"dEmnyQmNkx9plLyhjxTTB4pryVs6o1O6oBH9Q2Nl/4liukje0znFNNRnRnShHozpvJa8oRF9oEtlnpzQ",
-	"aY2GteQdxclx5n9Ue/zteqvVurcCBuAh86Megg1Nq9mqW6v15t0nDcu21N/3YMBeyH0mwQaXSaxLz0cw",
-	"QB5F6oiQ3Au6MBgYwPFV3+Pogv0sxWZ3YhW+eImOVECsc2QSFSyP8VUfhfx/uIYaS1GB7R/0KfmBxjQu",
-	"oaFqzkeMkDsY6FR8duj5fR/shmUZ4HtB9m1SihdI7CLXFReqq8SgULOIwkBguWg3a7ESYMh5yOfBsamN",
-	"BiqDDezhFwP4poqmgyy9os0r+7x/J3R1VN8LvsOgK/enWbpqSwN8FIJ151sWSr06ZqRxqlr5PsodgXzG",
-	"hBDqkfrgSfTFwrMiDcQ4Z0elvFKX89K5kfq+QL61MS+TndSqGDs7vFsKNq8FZsUqofgfOuRB6Hp7R/Or",
-	"Z667MBu52a/6iB1OmkeNhjxLBrj6Snw22fPcfinCShAt/drqCstz+Xc6pXMlWUrJaFQ5na8Vae3p1pOH",
-	"z58+3FrffP5gc3t77f7mNuRQa3Y6xvTNblfMgJ0JiIVkfqWzLO44eUdj+qjVMU6ObxTYfHqdjoWrbcuq",
-	"Y/Pei3q74bbr7G7jTr3dvnOn02m3LcuypgW03/fcCu0cGOAFe6GG3ZPas0Kvto38wHOwtvZoCww4QC7S",
-	"vA8aqfZhwCIPbGitWCstpWpM7msSTWciOZrhML0Nhep/o5HeOc4UCTGd6x0j3S+qWFFdwtTZLRdseBQK",
-	"eS1skDYeCvlN6B6l4zmQmaayKOp5jj5qvhQq9tWWNa+dytvCIN/jkvdR/5C2sy6+aVlLSSC7MTqDApJ/",
-	"TaOVQ3NF2Q8MMN2JZC7GSHHjW4yRa2FeEiPl9eKWGalYPRZgZArNCSPdKeVZiJNsJrxVy3k1KzENZ06O",
-	"MmHT8rckyqoWg1smrXJdmEtb8tMMMDMS/byuLcbjGcX0t3rlur5f5me8Yg3NqresmIbVFBekd0ks37AD",
-	"3TLRN60ZVVz/WYnv+xI9OWpmoj9Im0IgV1oJ9rNiE2zgAfbCyMdA1lIrMKDPe2DDvpSRbZq90GG9/VBI",
-	"e9VabZhKaXcH/wYAAP//sYnz+CMQAAA=",
+	"H4sIAAAAAAAC/7xYW08bRxT+K6tppbys2fUNyL5RoAipUSKc8NAIRRvvwWzkvWRmjLAiS1yi5iGolfrU",
+	"h7ZR/4Hr4OIGYv7CmX8Uzaxv611fSDASEvbuzJxzvu/MN9/4DSkHXhj44HNGrDeElQ/As9XHNccpVWsV",
+	"tmFzW34PaRAC5S6ot77tgfz/PYV9YpHvjOE6Rm8RQ04nDZ1wXpVDHWBl6obcDXxiEfxdHGMbr8VvGjax",
+	"JU6xi9fYFKfYEe+wLU7wE3bxI3Y1cYYX2MQrbONn7MjxN9jFK3GOl9jFlprTxiv5ooOXmjjBNn7Eazlc",
+	"nGJTw5Ym3mJXHPfWb2s7P67n8/mHS0QncGR7YRWIRXJmLp8xVzO5ladZ0zLl389EJ/sB9WxOLOLYHDLc",
+	"9YDohNdDOYVx6voV0mjohMLrmkvBIdbzCJu9wajg5SsocwnEOgWbg4RlB17XgPFvwzVQWLIUbP/GG/EL",
+	"drCTQEPWHI8YAi2Dr1Lx7CPXq3nEypqmTjzX730blOL6HCpAVcVj1aViMFYzCwOfQbJop9diCcCA0oDO",
+	"gmNTDWrIDDagCncG8KSKRoMsvKLN/vj4+uXAUVE91/8J/Ao/GGWp35Y68YAxuzJ75Fip/Wl6FCetlbeA",
+	"70AYUJ4uDzWatuX/ESfiPV7hJ7krP2NTWy/tyr3ZxP/xaml0s9WoS/Rb5Swj7o0mNrEDQqBu4ExXpIRk",
+	"PKjX6/WM5z1IFQ2Zq33Uz3UllvlKCi81BnR7Y1YbPItGJSqNHuv9QsaqntWS0yLGWf2Kdt0CLrOecnAw",
+	"+Up+cDl4bO4jJELQptSuJwCJlpzQpYN0JvbDXZCxlwj2jTTEUfwKJh4Fjrtfn1297ThzsxGzBI1Yz6sT",
+	"I86SThyllLcme9ayd0VYAqKFq7mqMCk8f2ETL6WTkQYH26mH9lBz1na3nz5+sft4e33zxaPNUmlta7MU",
+	"F6BcsRiToEKKBD0bgDiWzB940YvbEW+xI8VamjNxPNF3xdMrFk1YLZhmBnIPX2YKWaeQsVeyy5lCYXm5",
+	"WCwUTNM0Y1Jfc50US9XQievvBwp2l6uVJXpaCeihWwZt7ck20ckhUBblfZiNLBH4dugSi+SXzKW8FEmb",
+	"HygSjfLAiSiGg2g3jFX/J7aVFb2QJHTxUlnPyHamsSK7xJZztx1ikScB40O/Q6LGA8Z/CJx6dGr7vGe1",
+	"7DCsumU11XjFZOy++Z7VTkkT2Yj3OKc1UA+idlbF50xzIQn0dozKYPywH0UrhuaSHN/QieEMnNR8jIxf",
+	"BOZjZOjXFsRI0nXeMyMpjnQORkbQHDBS6RuAKYR8UCpwJt5hR5yKc02c9G2dOBvYukzf1unSTMm7XCQi",
+	"8panqaD/yemafK7ue6dKXiZpzK8aXkrTeINtcYwd1Q6R/UnnfGBkFkR5wmXeM+NJv5dK+HS/PeR8cAbO",
+	"tQ97HMkOmLATu5LzKadFKmHDJBbGWcIO3T9tSbsxc6uK91PA7JHoxb3MfDxeYBf/xSa2hppq3OLXlpaR",
+	"9oNLF1vpFI/ZrQWxPMH33jPRk6xlGtcfUvE9T9ATo2Yq+o2oKRhQ6Y+I9Xy8CTbgEKpB6IHPtWgU0aM7",
+	"OzngPLQMoxqU7epBwLi1aq5mDemu9hpfAgAA//85uNoFLhQAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

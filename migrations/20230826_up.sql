@@ -12,7 +12,8 @@ create table if not exists slugs
 -- Таблица пользователей.
 create table if not exists users
 (
-    id         uuid primary key,
+    id         bigserial primary key,
+    user_id    uuid unique,
     created_at timestamptz not null default now()
 );
 
@@ -20,7 +21,7 @@ create table if not exists users
 create table if not exists users_slugs
 (
     id        bigserial primary key,
-    user_id   uuid         not null references users (id),
+    user_id   uuid         not null references users (user_id),
     slug_id   bigint       not null references slugs (id),
     -- Сознательно дублируем данные, чтобы избежать join-а на "slugs" при получении сегментов пользователя.
     slug_name varchar(255) not null,
@@ -37,6 +38,9 @@ create table if not exists events
     event      text        not null,
     created_at timestamptz not null default now()
 );
+
+create index events_user_id_idx on events (user_id);
+create index events_created_at_idx on events (created_at);
 
 -- Таблица хранения задач для дальнейшего выполнение.
 create table if not exists outbox

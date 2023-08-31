@@ -12,6 +12,10 @@ import (
 	"github.com/frutonanny/slug-service/internal/database"
 )
 
+var (
+	ErrUserNotFound = errors.New("user not found")
+)
+
 type Repository struct {
 	db *database.DB
 }
@@ -21,7 +25,7 @@ func New(db *database.DB) *Repository {
 }
 
 func (r *Repository) CreateUserIfNotExist(ctx context.Context, userID uuid.UUID) error {
-	const query = `insert into "users" (id) values($1) on conflict (id) do nothing;`
+	const query = `insert into "users" (user_id) values($1) on conflict (user_id) do nothing;`
 
 	_, err := r.db.Exec(ctx, query, userID)
 	if err != nil {
@@ -129,4 +133,23 @@ func (r *Repository) GetUserSlugs(ctx context.Context, userID uuid.UUID) ([]Slug
 	}
 
 	return result, nil
+}
+
+func (r *Repository) GetNextUser(ctx context.Context, previousID int64) (User, error) {
+	const query = `select "id", "user_id" 
+					from "users"
+					where "id" > $1
+  					order by id
+  					limit 1;`
+
+	var u User
+	if err := r.db.QueryRow(ctx, query, previousID).Scan(&u.ID, &u.UserID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return u, ErrUserNotFound
+		}
+
+		return u, fmt.Errorf("scan user: %v", err)
+	}
+
+	return u, nil
 }

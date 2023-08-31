@@ -26,7 +26,13 @@ type usersRepo interface {
 }
 
 type eventsRepo interface {
-	AddEvent(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error)
+	AddEventWithCreatedAt(
+		ctx context.Context,
+		userID uuid.UUID,
+		slugID int64,
+		event string,
+		createdAt time.Time,
+	) (int64, error)
 }
 
 type transactor interface {
@@ -55,8 +61,8 @@ func New(
 	}
 }
 
-// GetUserSlug отдает список slug пользователя.
-func (s *Service) GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, error) {
+// GetUserSlugs отдает список сегментов пользователя.
+func (s *Service) GetUserSlugs(ctx context.Context, userID uuid.UUID, sync bool) ([]string, error) {
 	// Возвращает все сегменты пользователя с ttl и deleted_at.
 	slugs, err := s.usersRepo.GetUserSlugs(ctx, userID)
 	if err != nil {
@@ -69,48 +75,48 @@ func (s *Service) GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, 
 	}
 
 	var (
-		slugsForDelete []int64
+		slugsForDelete []slugForDelete
 		result         []string
 	)
 
+	// Проходим по всем сегментам и удаляем невалидные:
 	for _, slug := range slugs {
-		// Сегмент был удален, добавляем в список на удаление, в результат не попадает.
-		// Или ttl уже прошел, то же самое.
-		if !slug.DeletedAt.IsZero() || !slug.Ttl.IsZero() && slug.Ttl.Before(time.Now()) {
-			slugsForDelete = append(slugsForDelete, slug.ID)
+		// Если сегмент был удален, то добавляем его в список на удаление (в результат не попадает).
+		// Также если ttl (автоматическое удаление) уже прошло, то также добавляем в список на удаление.
+		if !slug.DeletedAt.IsZero() {
+			slugsForDelete = append(slugsForDelete, slugForDelete{
+				id:        slug.ID,
+				deletedAt: slug.DeletedAt,
+			})
+			continue
+		}
+
+		if !slug.Ttl.IsZero() && slug.Ttl.Before(time.Now()) {
+			slugsForDelete = append(slugsForDelete, slugForDelete{
+				id:        slug.ID,
+				deletedAt: slug.Ttl,
+			})
 			continue
 		}
 
 		result = append(result, slug.Name)
 	}
 
-	// Неблокирующее удаление удаленных и истекших slugs у пользователя.
+	// Блокирующее или неблокирующее удаление удаленных и истекших slugs у пользователя.
 	if len(slugsForDelete) > 0 {
-		go func() {
-			if err := s.transactor.RunInTx(ctx, func(ctx context.Context) error {
-				for _, slugID := range slugsForDelete {
-					if err := s.usersRepo.DeleteUserSlug(ctx, userID, slugID); err != nil {
-						s.log.Error("delete users_slugs", zap.Error(err))
-						return fmt.Errorf("delete users_slugs: %v", err)
-					}
-
-					if _, err := s.eventsRepo.AddEvent(
-						ctx,
-						userID,
-						slugID,
-						services.DeleteSlug,
-					); err != nil {
-						s.log.Error("add event", zap.Error(err))
-						return fmt.Errorf("add event: %v", err)
-					}
-				}
-
-				return nil
-			}); err != nil {
-				s.log.Error("run in tx", zap.Error(err))
-				return
+		if sync {
+			if err := s.deleteSlugs(ctx, userID, slugsForDelete); err != nil {
+				s.log.Error("sync delete slugs", zap.Error(err))
+				return nil, fmt.Errorf("delete slugs: %v", err)
 			}
-		}()
+		} else {
+			go func() {
+				if err := s.deleteSlugs(context.Background(), userID, slugsForDelete); err != nil {
+					s.log.Error("async delete slugs", zap.Error(err))
+					return
+				}
+			}()
+		}
 	}
 
 	if len(result) == 0 {
@@ -118,4 +124,38 @@ func (s *Service) GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, 
 	}
 
 	return result, nil
+}
+
+type slugForDelete struct {
+	id        int64
+	deletedAt time.Time
+}
+
+func (s *Service) deleteSlugs(ctx context.Context, userID uuid.UUID, slugsForDelete []slugForDelete) error {
+	if err := s.transactor.RunInTx(ctx, func(ctx context.Context) error {
+		for _, slug := range slugsForDelete {
+			if err := s.usersRepo.DeleteUserSlug(ctx, userID, slug.id); err != nil {
+				s.log.Error("delete users_slugs", zap.Error(err))
+				return fmt.Errorf("delete users_slugs: %v", err)
+			}
+
+			if _, err := s.eventsRepo.AddEventWithCreatedAt(
+				ctx,
+				userID,
+				slug.id,
+				services.DeleteSlug,
+				slug.deletedAt,
+			); err != nil {
+				s.log.Error("add event", zap.Error(err))
+				return fmt.Errorf("add event: %v", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		s.log.Error("run in tx", zap.Error(err))
+		return fmt.Errorf("run in tx: %v", err)
+	}
+
+	return nil
 }

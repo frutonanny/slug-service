@@ -7,6 +7,7 @@ package mock_get_user_slug
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	users "github.com/frutonanny/slug-service/internal/repositories/users"
 	gomock "github.com/golang/mock/gomock"
@@ -88,19 +89,19 @@ func (m *MockeventsRepo) EXPECT() *MockeventsRepoMockRecorder {
 	return m.recorder
 }
 
-// AddEvent mocks base method.
-func (m *MockeventsRepo) AddEvent(ctx context.Context, userID uuid.UUID, slugID int64, event string) (int64, error) {
+// AddEventWithCreatedAt mocks base method.
+func (m *MockeventsRepo) AddEventWithCreatedAt(ctx context.Context, userID uuid.UUID, slugID int64, event string, createdAt time.Time) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddEvent", ctx, userID, slugID, event)
+	ret := m.ctrl.Call(m, "AddEventWithCreatedAt", ctx, userID, slugID, event, createdAt)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AddEvent indicates an expected call of AddEvent.
-func (mr *MockeventsRepoMockRecorder) AddEvent(ctx, userID, slugID, event interface{}) *gomock.Call {
+// AddEventWithCreatedAt indicates an expected call of AddEventWithCreatedAt.
+func (mr *MockeventsRepoMockRecorder) AddEventWithCreatedAt(ctx, userID, slugID, event, createdAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEvent", reflect.TypeOf((*MockeventsRepo)(nil).AddEvent), ctx, userID, slugID, event)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddEventWithCreatedAt", reflect.TypeOf((*MockeventsRepo)(nil).AddEventWithCreatedAt), ctx, userID, slugID, event, createdAt)
 }
 
 // Mocktransactor is a mock of transactor interface.

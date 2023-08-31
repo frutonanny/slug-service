@@ -5,5 +5,11 @@
   "service": {
     "port": "8081",
     "host": "0.0.0.0"
+  },
+  "minio": {
+    "endpoint": "minio:9000",
+    "public_endpoint": "localhost:9000",
+    "access_key_id": "katya",
+    "secret_access_key": "katyakatya"
   }
 }

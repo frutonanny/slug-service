@@ -1,0 +1,47 @@
+### Добавляем сегмент, который будем у пользователя делать просроченным.
+
+POST http://localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_PERFORMANCE_VAS_07_2023"
+}
+
+### Добавляем сегмент, который будем у пользователя делать непросроченным.
+
+POST http://localhost:8081/v1/createSlug
+Content-Type: application/json
+
+{
+  "name": "AVITO_PERFORMANCE_VAS_07_2033"
+}
+
+### Добавляем пользователя с просроченным и непросроченным сегментом.
+
+POST localhost:8081/v1/modifyUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99",
+  "add": [
+    {
+      "name": "AVITO_PERFORMANCE_VAS_07_2023",
+      "ttl": "2023-08-01T00:00:00Z"
+    },
+    {
+      "name": "AVITO_PERFORMANCE_VAS_07_2033",
+      "ttl": "2033-08-01T00:00:00Z"
+    }
+  ]
+}
+
+### Запрашиваем у пользователя сегменты.
+
+POST localhost:8081/v1/getUserSlugs
+Content-Type: application/json
+
+{
+  "userID": "53aa35c8-e659-44b2-882f-f6056e443c99"
+}
+
+

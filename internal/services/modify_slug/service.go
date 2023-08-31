@@ -128,6 +128,7 @@ func (s *Service) ModifySlugs(ctx context.Context, userID uuid.UUID, add []Slug,
 				}
 			}
 		}
+
 		return nil
 	}); err != nil {
 		s.log.Error("run in tx", zap.Error(err))

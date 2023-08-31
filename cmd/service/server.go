@@ -7,6 +7,7 @@ import (
 	"github.com/frutonanny/slug-service/internal/server/v1/handlers"
 	createslugservice "github.com/frutonanny/slug-service/internal/services/create_slug"
 	deleteslugservice "github.com/frutonanny/slug-service/internal/services/delete_slug"
+	getReportService "github.com/frutonanny/slug-service/internal/services/get_report"
 	getUserSlugService "github.com/frutonanny/slug-service/internal/services/get_user_slug"
 	modifyuserslugservice "github.com/frutonanny/slug-service/internal/services/modify_slug"
 )
@@ -18,12 +19,14 @@ func initServer(
 	deleteSlugService *deleteslugservice.Service,
 	modifyUserSlugService *modifyuserslugservice.Service,
 	getUserSlugService *getUserSlugService.Service,
+	getReportService *getReportService.Service,
 ) (*server.Server, error) {
 	h := handlers.NewHandlers(
 		createSlugService,
 		deleteSlugService,
 		modifyUserSlugService,
 		getUserSlugService,
+		getReportService,
 	)
 
 	srv := server.New(

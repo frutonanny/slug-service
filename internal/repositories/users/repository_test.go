@@ -49,7 +49,7 @@ func (s *RepositorySuite) TestRepository_CreateUserIfNotExist() {
 	// Assert.
 	s.Require().NoError(err)
 
-	const query = `select exists(select 1 from "users" where id = $1);`
+	const query = `select exists(select 1 from "users" where "user_id" = $1);`
 
 	row := s.DB.QueryRow(ctx, query, userID)
 	s.Require().NoError(row.Err())

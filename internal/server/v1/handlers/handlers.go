@@ -3,9 +3,10 @@ package handlers
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	createslugservice "github.com/frutonanny/slug-service/internal/services/create_slug"
 	modifyslug "github.com/frutonanny/slug-service/internal/services/modify_slug"
-	"github.com/google/uuid"
 )
 
 type createSlugService interface {
@@ -21,7 +22,11 @@ type modifyUserSlugService interface {
 }
 
 type getUserSlugService interface {
-	GetUserSlug(ctx context.Context, userID uuid.UUID) ([]string, error)
+	GetUserSlugs(ctx context.Context, userID uuid.UUID, sync bool) ([]string, error)
+}
+
+type getReportService interface {
+	GetReport(ctx context.Context, userID uuid.UUID, period string) (string, error)
 }
 
 type Handlers struct {
@@ -29,6 +34,7 @@ type Handlers struct {
 	deleteSlugService     deleteSlugService
 	modifyUserSlugService modifyUserSlugService
 	getUserSlugService    getUserSlugService
+	getReportService      getReportService
 }
 
 func NewHandlers(
@@ -36,11 +42,13 @@ func NewHandlers(
 	deleteSlugService deleteSlugService,
 	modifyUserSlugService modifyUserSlugService,
 	getUserSlugService getUserSlugService,
+	getReportService getReportService,
 ) *Handlers {
 	return &Handlers{
 		createSlugService:     createSlugService,
 		deleteSlugService:     deleteSlugService,
 		modifyUserSlugService: modifyUserSlugService,
 		getUserSlugService:    getUserSlugService,
+		getReportService:      getReportService,
 	}
 }
